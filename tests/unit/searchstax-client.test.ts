@@ -2,11 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { createSearchStaxClient } from '../../src/searchstax/client.js';
 
 describe('createSearchStaxClient', () => {
-  it('sends bearer auth and query params', async () => {
+  it('sends token auth to /select with query params', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      expect(String(input)).toContain('/select?');
       expect(String(input)).toContain('q=brain');
       expect(String(input)).toContain('rows=10');
-      expect(init?.headers).toMatchObject({ Authorization: 'Bearer token' });
+      expect(String(input)).toContain('wt=json');
+      expect(init?.headers).toMatchObject({ Authorization: 'Token token' });
 
       return new Response(
         JSON.stringify({ response: { docs: [{ id: '1' }], numFound: 1 }, took: 12 }),

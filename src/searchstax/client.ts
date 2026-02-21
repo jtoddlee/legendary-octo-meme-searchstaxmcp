@@ -26,7 +26,7 @@ export function createSearchStaxClient(options: ClientOptions): SearchStaxClient
   const base = options.baseUrl.replace(/\/$/, '');
 
   async function search(input: SearchRequest): Promise<SearchResponse> {
-    const params = new URLSearchParams({ q: input.query });
+    const params = new URLSearchParams({ q: input.query, wt: 'json' });
 
     if (typeof input.rows === 'number') {
       params.set('rows', String(input.rows));
@@ -35,7 +35,7 @@ export function createSearchStaxClient(options: ClientOptions): SearchStaxClient
       params.set('start', String(input.start));
     }
 
-    const url = `${base}/search?${params.toString()}`;
+    const url = `${base}/select?${params.toString()}`;
     let lastError: unknown;
 
     for (let attempt = 0; attempt <= options.retries; attempt += 1) {
@@ -46,7 +46,7 @@ export function createSearchStaxClient(options: ClientOptions): SearchStaxClient
         const response = await fetchImpl(url, {
           method: 'GET',
           headers: {
-            Authorization: `Bearer ${options.apiToken}`,
+            Authorization: `Token ${options.apiToken}`,
             Accept: 'application/json'
           },
           signal: controller.signal
