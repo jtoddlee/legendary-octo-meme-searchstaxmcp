@@ -10,6 +10,7 @@ set -euo pipefail
 : "${AZ_ACR_IMAGE:?Set AZ_ACR_IMAGE}"
 : "${AZ_MANAGED_IDENTITY_ID:?Set AZ_MANAGED_IDENTITY_ID}"
 : "${SEARCHSTAX_BASE_URL:?Set SEARCHSTAX_BASE_URL}"
+: "${GPT_ACTION_API_KEY:?Set GPT_ACTION_API_KEY}"
 
 echo "Validating bicep template"
 az bicep build --file deploy/azure/containerapp.bicep >/dev/null
@@ -25,4 +26,5 @@ az deployment group create \
     acrServer="$AZ_ACR_SERVER" \
     acrImage="$AZ_ACR_IMAGE" \
     managedIdentityResourceId="$AZ_MANAGED_IDENTITY_ID" \
-    searchstaxBaseUrl="$SEARCHSTAX_BASE_URL"
+    searchstaxBaseUrl="$SEARCHSTAX_BASE_URL" \
+    gptActionApiKey="$GPT_ACTION_API_KEY"

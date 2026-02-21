@@ -28,4 +28,18 @@ describe('handleSearchstaxSearch', () => {
     expect(result.content[0].text).toContain('auth');
     expect(result.content[0].text).not.toContain('Bearer');
   });
+
+  it('defaults rows to 10 when omitted', async () => {
+    let capturedRows: number | undefined;
+    const client: SearchStaxClient = {
+      async search(input) {
+        capturedRows = input.rows;
+        return { documents: [], total: 0 };
+      }
+    };
+
+    const result = await handleSearchstaxSearch(client, { query: 'abc' });
+    expect(result.isError).toBeUndefined();
+    expect(capturedRows).toBe(10);
+  });
 });

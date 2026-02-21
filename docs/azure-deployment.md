@@ -26,6 +26,7 @@ export AZ_ACR_SERVER="<acr>.azurecr.io"
 export AZ_ACR_IMAGE="<acr>.azurecr.io/searchstax-mcp:latest"
 export AZ_MANAGED_IDENTITY_ID="/subscriptions/.../userAssignedIdentities/..."
 export SEARCHSTAX_BASE_URL="https://<your-searchstax-endpoint>"
+export GPT_ACTION_API_KEY="<strong-random-secret>"
 bash deploy/azure/deploy.sh
 ```
 

@@ -6,6 +6,8 @@ param acrServer string
 param acrImage string
 param managedIdentityResourceId string
 param searchstaxBaseUrl string
+@secure()
+param gptActionApiKey string
 param searchstaxApiTokenSecretRef string = 'searchstax-api-token'
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
@@ -76,6 +78,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'SEARCHSTAX_API_TOKEN'
               secretRef: searchstaxApiTokenSecretRef
+            }
+            {
+              name: 'GPT_ACTION_API_KEY'
+              value: gptActionApiKey
             }
           ]
           resources: {

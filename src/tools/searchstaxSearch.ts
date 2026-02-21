@@ -4,7 +4,7 @@ import type { SearchStaxClient } from '../searchstax/types.js';
 
 export const searchstaxSearchInputSchema = z.object({
   query: z.string().min(1),
-  rows: z.number().int().min(1).max(100).optional(),
+  rows: z.number().int().min(1).max(100).default(10),
   start: z.number().int().min(0).optional(),
   model: z.string().min(1).optional(),
   fq: z.array(z.string().min(1)).optional()

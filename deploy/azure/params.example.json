@@ -10,6 +10,7 @@
     "managedIdentityResourceId": {
       "value": "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity>"
     },
-    "searchstaxBaseUrl": { "value": "https://example.searchstax.com" }
+    "searchstaxBaseUrl": { "value": "https://example.searchstax.com" },
+    "gptActionApiKey": { "value": "replace-with-strong-random-secret" }
   }
 }

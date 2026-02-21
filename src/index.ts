@@ -12,7 +12,10 @@ const client = createSearchStaxClient({
   retries: config.HTTP_RETRIES
 });
 
-const app = createHttpApp(() => createServer(client));
+const app = createHttpApp(() => createServer(client), {
+  client,
+  apiKey: config.GPT_ACTION_API_KEY
+});
 
 app.listen(config.PORT, () => {
   // Keep startup message short and avoid secret output.

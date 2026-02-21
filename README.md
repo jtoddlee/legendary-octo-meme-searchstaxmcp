@@ -6,6 +6,7 @@ Read-only MCP server that allows Codex CLI to query SearchStax through an Azure-
 Required:
 - `SEARCHSTAX_BASE_URL`
 - `SEARCHSTAX_API_TOKEN`
+- `GPT_ACTION_API_KEY` (required for `/gpt-actions/search`)
 
 Optional:
 - `HTTP_TIMEOUT_MS` (default `8000`)
@@ -21,6 +22,19 @@ npm run dev
 Health check:
 ```bash
 curl http://127.0.0.1:3000/healthz
+```
+
+GPT Action OpenAPI:
+```bash
+curl http://127.0.0.1:3000/gpt-actions/openapi.json
+```
+
+GPT Action search:
+```bash
+curl -X POST http://127.0.0.1:3000/gpt-actions/search \
+  -H 'content-type: application/json' \
+  -H "x-internal-api-key: $GPT_ACTION_API_KEY" \
+  --data-raw '{"query":"cancer research"}'
 ```
 
 ## Verify
@@ -48,6 +62,7 @@ $env:AZ_ACR_IMAGE="$($env:AZ_ACR_SERVER)/searchstax-mcp:latest"
 $env:AZ_IDENTITY_NAME="id-searchstax-mcp"
 $env:AZ_KEYVAULT_NAME="kv-searchstax-mcp-one" # must be globally unique
 $env:SEARCHSTAX_BASE_URL="https://<your-searchstax-endpoint>"
+$env:GPT_ACTION_API_KEY="<strong-random-secret>"
 ```
 
 ### 2) Create Azure resources
@@ -125,7 +140,8 @@ az deployment group create `
     acrServer=$env:AZ_ACR_SERVER `
     acrImage=$env:AZ_ACR_IMAGE `
     managedIdentityResourceId=$env:AZ_MANAGED_IDENTITY_ID `
-    searchstaxBaseUrl=$env:SEARCHSTAX_BASE_URL
+    searchstaxBaseUrl=$env:SEARCHSTAX_BASE_URL `
+    gptActionApiKey=$env:GPT_ACTION_API_KEY
 ```
 
 ### 8) Verify deployment

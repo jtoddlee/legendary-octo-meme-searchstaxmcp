@@ -61,6 +61,28 @@ describe('createSearchStaxClient', () => {
     expect(result.total).toBe(1);
   });
 
+  it('defaults rows to 10 when omitted', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      expect(String(input)).toContain('rows=10');
+
+      return new Response(
+        JSON.stringify({ response: { docs: [{ id: '3' }], numFound: 1 }, took: 5 }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      );
+    });
+
+    const client = createSearchStaxClient({
+      baseUrl: 'https://example.com',
+      apiToken: 'token',
+      timeoutMs: 200,
+      retries: 0,
+      fetchImpl: fetchMock as unknown as typeof fetch
+    });
+
+    const result = await client.search({ query: 'brain' });
+    expect(result.total).toBe(1);
+  });
+
   it('maps 401 into auth category', async () => {
     const fetchMock = vi.fn(async () => new Response('nope', { status: 401 }));
 

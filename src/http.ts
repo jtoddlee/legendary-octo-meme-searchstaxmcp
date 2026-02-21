@@ -2,13 +2,29 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { z } from 'zod';
+import type { SearchStaxClient } from './searchstax/types.js';
+import { SearchStaxError } from './errors.js';
 
 interface SessionState {
   transport: StreamableHTTPServerTransport;
   server: McpServer;
 }
 
-export function createHttpApp(createServer: () => McpServer) {
+interface GptActionOptions {
+  client: SearchStaxClient;
+  apiKey: string;
+}
+
+const gptSearchSchema = z.object({
+  query: z.string().min(1),
+  rows: z.number().int().min(1).max(100).default(10),
+  start: z.number().int().min(0).optional(),
+  model: z.string().min(1).optional(),
+  fq: z.array(z.string().min(1)).optional()
+});
+
+export function createHttpApp(createServer: () => McpServer, gptActions?: GptActionOptions) {
   const app = express();
   app.use(express.json());
 
@@ -37,6 +53,117 @@ export function createHttpApp(createServer: () => McpServer) {
   app.get('/healthz', (_req, res) => {
     res.status(200).json({ ok: true });
   });
+
+  if (gptActions) {
+    app.get('/gpt-actions/openapi.json', (_req, res) => {
+      res.status(200).json({
+        openapi: '3.1.0',
+        info: {
+          title: 'SearchStax GPT Action API',
+          version: '1.0.0'
+        },
+        servers: [{ url: '/' }],
+        paths: {
+          '/gpt-actions/search': {
+            post: {
+              operationId: 'searchstaxSearch',
+              summary: 'Search SearchStax index',
+              security: [{ internalApiKey: [] }],
+              requestBody: {
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      required: ['query'],
+                      properties: {
+                        query: { type: 'string', minLength: 1 },
+                        rows: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+                        start: { type: 'integer', minimum: 0 },
+                        model: { type: 'string', minLength: 1 },
+                        fq: { type: 'array', items: { type: 'string', minLength: 1 } }
+                      }
+                    }
+                  }
+                }
+              },
+              responses: {
+                '200': {
+                  description: 'Search results'
+                },
+                '400': {
+                  description: 'Validation error'
+                },
+                '401': {
+                  description: 'Unauthorized'
+                },
+                '502': {
+                  description: 'Upstream SearchStax error'
+                }
+              }
+            }
+          }
+        },
+        components: {
+          securitySchemes: {
+            internalApiKey: {
+              type: 'apiKey',
+              in: 'header',
+              name: 'X-Internal-Api-Key'
+            }
+          }
+        }
+      });
+    });
+
+    app.post('/gpt-actions/search', async (req, res) => {
+      const apiKey = req.header('x-internal-api-key');
+      if (!apiKey || apiKey !== gptActions.apiKey) {
+        res.status(401).json({
+          error: {
+            code: 'unauthorized',
+            message: 'Missing or invalid API key'
+          }
+        });
+        return;
+      }
+
+      const parsed = gptSearchSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          error: {
+            code: 'validation_error',
+            message: 'Invalid request body',
+            issues: parsed.error.issues.map((issue) => ({
+              path: issue.path.join('.'),
+              message: issue.message
+            }))
+          }
+        });
+        return;
+      }
+
+      try {
+        const result = await gptActions.client.search(parsed.data);
+        res.status(200).json({
+          query: parsed.data.query,
+          numFound: result.total,
+          start: parsed.data.start ?? 0,
+          rows: parsed.data.rows,
+          docs: result.documents,
+          rawTookMs: result.rawTookMs
+        });
+      } catch (error) {
+        const message = error instanceof SearchStaxError ? error.message : 'Search request failed';
+        res.status(502).json({
+          error: {
+            code: 'upstream_error',
+            message
+          }
+        });
+      }
+    });
+  }
 
   app.post('/mcp', async (req, res) => {
     try {

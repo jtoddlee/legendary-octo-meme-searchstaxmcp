@@ -25,15 +25,14 @@ export function createSearchStaxClient(options: ClientOptions): SearchStaxClient
   const fetchImpl = options.fetchImpl ?? fetch;
   const base = options.baseUrl.replace(/\/$/, '');
   const defaultModel = 'SITE_SEARCH';
+  const defaultRows = 10;
   const defaultFq = ['is_preview_b:false', 'site_name_s:UCSF'];
 
   async function search(input: SearchRequest): Promise<SearchResponse> {
     const params = new URLSearchParams({ q: input.query, wt: 'json' });
     params.set('model', input.model ?? defaultModel);
 
-    if (typeof input.rows === 'number') {
-      params.set('rows', String(input.rows));
-    }
+    params.set('rows', String(input.rows ?? defaultRows));
     if (typeof input.start === 'number') {
       params.set('start', String(input.start));
     }

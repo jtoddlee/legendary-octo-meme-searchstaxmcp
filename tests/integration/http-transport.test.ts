@@ -64,4 +64,77 @@ describe('http transport', () => {
 
     server.close();
   });
+
+  it('requires api key for gpt action endpoint', async () => {
+    const app = createHttpApp(() => createServer(client), {
+      client,
+      apiKey: 'secret'
+    });
+    const server = app.listen(0);
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Server failed to bind');
+    }
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/gpt-actions/search`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: 'brain' })
+    });
+    expect(response.status).toBe(401);
+    server.close();
+  });
+
+  it('supports gpt action search with default rows', async () => {
+    let capturedRows: number | undefined;
+    const gptClient: SearchStaxClient = {
+      async search(input) {
+        capturedRows = input.rows;
+        return { documents: [{ id: '1' }], total: 1, rawTookMs: 4 };
+      }
+    };
+
+    const app = createHttpApp(() => createServer(gptClient), {
+      client: gptClient,
+      apiKey: 'secret'
+    });
+    const server = app.listen(0);
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Server failed to bind');
+    }
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/gpt-actions/search`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-internal-api-key': 'secret'
+      },
+      body: JSON.stringify({ query: 'brain' })
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.numFound).toBe(1);
+    expect(capturedRows).toBe(10);
+    server.close();
+  });
+
+  it('serves OpenAPI schema for gpt actions', async () => {
+    const app = createHttpApp(() => createServer(client), {
+      client,
+      apiKey: 'secret'
+    });
+    const server = app.listen(0);
+    const address = server.address();
+    if (!address || typeof address === 'string') {
+      throw new Error('Server failed to bind');
+    }
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/gpt-actions/openapi.json`);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.openapi).toBe('3.1.0');
+    expect(body.paths['/gpt-actions/search']).toBeDefined();
+    server.close();
+  });
 });
