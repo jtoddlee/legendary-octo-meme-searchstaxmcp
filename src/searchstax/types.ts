@@ -2,6 +2,8 @@ export interface SearchRequest {
   query: string;
   rows?: number;
   start?: number;
+  model?: string;
+  fq?: string[];
 }
 
 export interface SearchResponse {

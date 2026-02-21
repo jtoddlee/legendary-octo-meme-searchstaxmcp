@@ -3,7 +3,13 @@ import { searchstaxSearchInputSchema } from '../../src/tools/searchstaxSearch.js
 
 describe('searchstax search input schema', () => {
   it('accepts valid input', () => {
-    const parsed = searchstaxSearchInputSchema.parse({ query: 'q', rows: 5, start: 0 });
+    const parsed = searchstaxSearchInputSchema.parse({
+      query: 'q',
+      rows: 5,
+      start: 0,
+      model: 'SITE_SEARCH',
+      fq: ['is_preview_b:false']
+    });
     expect(parsed.query).toBe('q');
   });
 

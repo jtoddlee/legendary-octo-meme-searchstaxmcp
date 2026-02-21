@@ -24,9 +24,12 @@ function classifyStatus(status: number): 'auth' | 'rate_limit' | 'upstream_error
 export function createSearchStaxClient(options: ClientOptions): SearchStaxClient {
   const fetchImpl = options.fetchImpl ?? fetch;
   const base = options.baseUrl.replace(/\/$/, '');
+  const defaultModel = 'SITE_SEARCH';
+  const defaultFq = ['is_preview_b:false', 'site_name_s:UCSF'];
 
   async function search(input: SearchRequest): Promise<SearchResponse> {
     const params = new URLSearchParams({ q: input.query, wt: 'json' });
+    params.set('model', input.model ?? defaultModel);
 
     if (typeof input.rows === 'number') {
       params.set('rows', String(input.rows));
@@ -34,8 +37,11 @@ export function createSearchStaxClient(options: ClientOptions): SearchStaxClient
     if (typeof input.start === 'number') {
       params.set('start', String(input.start));
     }
+    for (const fq of input.fq ?? defaultFq) {
+      params.append('fq', fq);
+    }
 
-    const url = `${base}/select?${params.toString()}`;
+    const url = `${base}/emselect?${params.toString()}`;
     let lastError: unknown;
 
     for (let attempt = 0; attempt <= options.retries; attempt += 1) {
