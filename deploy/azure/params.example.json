@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "containerAppName": { "value": "searchstax-mcp-prod" },
+    "containerAppsEnvironmentName": { "value": "searchstax-mcp-env" },
+    "logAnalyticsName": { "value": "searchstax-mcp-logs" },
+    "acrServer": { "value": "myregistry.azurecr.io" },
+    "acrImage": { "value": "myregistry.azurecr.io/searchstax-mcp:latest" },
+    "managedIdentityResourceId": {
+      "value": "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<identity>"
+    },
+    "searchstaxBaseUrl": { "value": "https://example.searchstax.com" }
+  }
+}
