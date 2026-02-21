@@ -105,6 +105,7 @@ export function createHttpApp(createServer: () => McpServer, gptActions?: GptAct
           }
         },
         components: {
+          schemas: {},
           securitySchemes: {
             internalApiKey: {
               type: 'apiKey',

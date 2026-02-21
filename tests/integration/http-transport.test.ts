@@ -135,6 +135,7 @@ describe('http transport', () => {
     const body = await response.json();
     expect(body.openapi).toBe('3.1.0');
     expect(body.paths['/gpt-actions/search']).toBeDefined();
+    expect(body.components.schemas).toEqual({});
     server.close();
   });
 });
