@@ -12,8 +12,7 @@ const client = createSearchStaxClient({
   retries: config.HTTP_RETRIES
 });
 
-const mcpServer = createServer(client);
-const app = createHttpApp(mcpServer);
+const app = createHttpApp(() => createServer(client));
 
 app.listen(config.PORT, () => {
   // Keep startup message short and avoid secret output.
